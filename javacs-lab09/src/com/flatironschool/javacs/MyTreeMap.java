@@ -2,7 +2,7 @@
  * 
  */
 package com.flatironschool.javacs;
-
+import java.util.*;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
@@ -73,6 +73,11 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 		
 		// the actual search
         // TODO: Fill this in.
+        Node search = root;
+        while (search != null) {
+        	if (equals(search.key,target)) return search; 
+        	search =  k.compareTo(search.key) < 0? search.left : search.right;        
+        }
         return null;
 	}
 
@@ -92,7 +97,22 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 
 	@Override
 	public boolean containsValue(Object target) {
-		return false;
+		return containsValueHelper(root, target);
+	}
+
+	public boolean containsValueHelper(Node root, Object target) {
+		Deque<Node> queue = new LinkedList<Node>() ;
+	    if (root == null)
+	        return false;
+	    queue.clear();
+	    queue.add(root);
+	    while(!queue.isEmpty()){
+	        Node node = queue.remove();
+	        if (equals(node.value, target)) return true; 
+	        if(node.left != null) queue.add(node.left);
+	        if(node.right != null) queue.add(node.right);
+	    }
+	    return false; 
 	}
 
 	@Override
@@ -117,8 +137,16 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 	@Override
 	public Set<K> keySet() {
 		Set<K> set = new LinkedHashSet<K>();
-        // TODO: Fill this in.
-		return set;
+		return keySetHelper(set, root);
+	}
+
+	public Set<K> keySetHelper(Set<K> set, Node node) {
+		if (node != null) { 
+			set = keySetHelper(set, node.left);
+			set.add(node.key);
+			set = keySetHelper(set, node.right);
+		}
+		return set; 
 	}
 
 	@Override
@@ -135,8 +163,30 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 	}
 
 	private V putHelper(Node node, K key, V value) {
-        // TODO: Fill this in.
-        return null;
+        // TODO: Fill this in
+        @SuppressWarnings("unchecked")
+        Comparable<? super K> k = (Comparable<? super K>) key;
+		if (equals(node.key, key)) {
+			node.value = value;
+			return value; 
+		} else if (k.compareTo(node.key) < 0) {
+			if (node.left == null) {
+				node.left = new Node(key, value);
+				size++;
+				return value;
+			} else {
+				putHelper(node.left, key, value);
+			}
+		} else if (k.compareTo(node.key) > 0) {
+			if (node.right == null) {
+				node.right = new Node(key, value);
+				size++;
+				return value;
+			} else {
+				return putHelper(node.right, key, value);
+			}
+		}
+		return null;
 	}
 
 	@Override
